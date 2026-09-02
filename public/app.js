@@ -24,23 +24,43 @@ function openClaim(claim) {
   selectedClaim = claim;
   $("#claim-preview").innerHTML = `<strong>${money(claim.amount)}</strong><span>${claim.journey.from} → ${claim.journey.to}</span>`;
   $("#form-journey").value = `${claim.journey.date}, ${claim.journey.time} — ${claim.journey.description}`;
-  $(".confirm").innerHTML = `Confirm & queue claim <span>→</span>`;
+  $("#form-reason").value = claim.type === "delay"
+    ? `My journey took ${claim.actual} minutes compared with my ${claim.baseline}-minute personal route baseline, a delay of ${claim.delta} minutes. This exceeds the ${claim.threshold}-minute ${claim.journey.mode} refund threshold.`
+    : `This journey has no recorded touch-out. I was charged ${money(claim.journey.charge)} instead of the expected ${money(claim.expectedFare)} fare, a difference of ${money(claim.amount)}.`;
+  $(".confirm").innerHTML = `Copy details & open TfL <span>↗</span>`;
   $(".confirm").disabled = false;
   $("#modal").showModal();
+}
+
+function claimText(claim) {
+  return `TfL refund claim\nJourney: ${claim.journey.date}, ${claim.journey.time} — ${claim.journey.description}\nAmount: ${money(claim.amount)}\nReason: ${$("#form-reason").value}`;
 }
 
 $("#demo").onclick = () => render(demoJourneys());
 $("#file").onchange = async event => { const file = event.target.files[0]; if (file) render(parseCsv(await file.text())); };
 $(".close").onclick = () => $("#modal").close();
-$(".confirm").onclick = () => {
+$(".confirm").onclick = async () => {
   if (!selectedClaim) return;
+  window.open("https://tfl.gov.uk/fares/refunds-and-replacements", "_blank", "noopener,noreferrer");
+  try {
+    await navigator.clipboard.writeText(claimText(selectedClaim));
+  } catch {
+    const text = document.createElement("textarea");
+    text.value = claimText(selectedClaim);
+    document.body.append(text);
+    text.select();
+    document.execCommand("copy");
+    text.remove();
+  }
   const cardButton = document.querySelector(`[data-file="${selectedClaim.id}"]`);
-  cardButton.textContent = "Queued ✓";
+  cardButton.textContent = "Details copied ✓";
   cardButton.disabled = true;
   const status = cardButton.closest(".claim").querySelector(".status");
-  status.textContent = "CLAIM QUEUED";
+  status.textContent = "HANDED OFF TO TFL";
   status.classList.add("queued");
   $("#modal").close();
+  $("#toast b").textContent = "Claim details copied";
+  $("#toast span").textContent = "Paste them into the TfL refund form opened in the new tab.";
   $("#toast").classList.add("show");
   window.setTimeout(() => $("#toast").classList.remove("show"), 4500);
   selectedClaim = undefined;
