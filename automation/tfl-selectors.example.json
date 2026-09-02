@@ -1,0 +1,10 @@
+{
+  "startUrl": "https://tfl.gov.uk/fares/refunds/",
+  "fields": {
+    "journeyDate": "input[name='journeyDate']",
+    "journeyTime": "input[name='journeyTime']",
+    "origin": "input[name='origin']",
+    "destination": "input[name='destination']",
+    "reason": "textarea[name='reason']"
+  }
+}

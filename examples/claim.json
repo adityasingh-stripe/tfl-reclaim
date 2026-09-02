@@ -1,0 +1,13 @@
+{
+  "id": "demo-delay-1",
+  "type": "delay",
+  "journey": {
+    "date": "01/09/2026",
+    "time": "08:14",
+    "from": "Brixton",
+    "to": "Oxford Circus"
+  },
+  "actual": 34,
+  "baseline": 11,
+  "delta": 23
+}

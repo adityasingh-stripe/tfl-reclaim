@@ -8,3 +8,6 @@ tfl exports/
 node_modules/
 .wrangler/
 .DS_Store
+artifacts/
+playwright-report/
+storage-state*.json

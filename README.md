@@ -43,3 +43,24 @@ npm run deploy
 ```
 
 Wrangler prints the public `workers.dev` URL after deployment. The current prototype is a static-assets Worker and needs no secrets or database.
+
+## Experimental browser-assisted claim preparation
+
+The `feature/browser-automation` branch contains a deliberately non-submitting browser worker. It opens an official TfL page, fills fields whose selectors are configured, saves a review screenshot, and stops. It never locates or clicks a submit button.
+
+```bash
+npm install
+npx playwright install chromium
+npm run prepare:claim -- --claim examples/claim.json --headed
+```
+
+For an unattended run, omit `--headed` and provide a previously captured Playwright authentication state with `--storage path/to/storage-state.json`. Authentication state contains secrets: keep it outside the repository and inject it through the deployment platform's secret storage.
+
+Copy `automation/tfl-selectors.example.json` and update selectors after inspecting the authenticated TfL form, then pass it with `--config`. The example selectors are placeholders because the public refund landing page does not expose the authenticated form. The output screenshot defaults to `artifacts/tfl-claim-review.png`.
+
+Current limitations:
+
+- TfL login, CAPTCHA and multi-factor authentication cannot be bypassed; a valid user session is required.
+- TfL has no supported claim-submission API, so form changes can require selector updates.
+- This prototype prepares one claim per invocation and does not submit, schedule, retry or persist a claim ledger.
+- Run browser automation in a suitable container or VM; Cloudflare Workers cannot run a normal Playwright Chromium process.

@@ -4,8 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "node server.mjs",
+    "prepare:claim": "node automation/prepare-claim.mjs",
     "preview": "npx wrangler dev",
     "deploy": "npx wrangler deploy",
     "test": "node --test"
+  },
+  "optionalDependencies": {
+    "playwright": "^1.55.0"
   }
 }
