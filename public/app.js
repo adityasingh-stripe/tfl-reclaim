@@ -53,15 +53,15 @@ $(".confirm").onclick = async () => {
     text.remove();
   }
   const cardButton = document.querySelector(`[data-file="${selectedClaim.id}"]`);
-  cardButton.textContent = "Details copied ✓";
+  cardButton.textContent = "Copied & opened ✓";
   cardButton.disabled = true;
-  const status = cardButton.closest(".claim").querySelector(".status");
-  status.textContent = "HANDED OFF TO TFL";
-  status.classList.add("queued");
+  window.setTimeout(() => {
+    cardButton.textContent = "Prepare claim →";
+    cardButton.disabled = false;
+  }, 2500);
   $("#modal").close();
   $("#toast b").textContent = "Claim details copied";
   $("#toast span").textContent = "Paste them into the TfL refund form opened in the new tab.";
   $("#toast").classList.add("show");
   window.setTimeout(() => $("#toast").classList.remove("show"), 4500);
-  selectedClaim = undefined;
 };
