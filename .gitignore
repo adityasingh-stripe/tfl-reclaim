@@ -1,0 +1,10 @@
+# Personal TfL account exports may contain travel and card information.
+tfl exports/
+
+# Generated local deployment bundles.
+*.zip
+
+# Local tooling.
+node_modules/
+.wrangler/
+.DS_Store

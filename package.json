@@ -1,0 +1,11 @@
+{
+  "name": "reclaim-tfl",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "preview": "npx wrangler dev",
+    "deploy": "npx wrangler deploy",
+    "test": "node --test"
+  }
+}
