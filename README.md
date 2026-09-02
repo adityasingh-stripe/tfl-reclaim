@@ -42,4 +42,4 @@ npx wrangler login
 npm run deploy
 ```
 
-Wrangler prints the public `workers.dev` URL after deployment. The current prototype is a static-assets Worker and needs no secrets or database.
+Wrangler prints the public `workers.dev` URL after deployment. Add `TFL_API_KEY` as an encrypted Cloudflare Worker secret. Uploaded recent journeys are resolved through the server-side proxy and checked against TfL Journey Planner; the key is never exposed to the browser.
