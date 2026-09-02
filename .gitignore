@@ -11,3 +11,4 @@ node_modules/
 artifacts/
 playwright-report/
 storage-state*.json
+.env

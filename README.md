@@ -46,21 +46,24 @@ Wrangler prints the public `workers.dev` URL after deployment. The current proto
 
 ## Experimental browser-assisted claim preparation
 
-The `feature/browser-automation` branch contains a deliberately non-submitting browser worker. It opens an official TfL page, fills fields whose selectors are configured, saves a review screenshot, and stops. It never locates or clicks a submit button.
+The `feature/browser-automation` branch contains a deliberately non-submitting browser worker. Browserbase hosts the browser; Playwright connects to that session over CDP. The worker opens an official TfL page, fills configured fields, saves a review screenshot, and stops. It never locates or clicks a submit button.
 
 ```bash
 npm install
-npx playwright install chromium
-npm run prepare:claim -- --claim examples/claim.json --headed
+export BROWSERBASE_API_KEY=your_server_side_secret
+export BROWSERBASE_PROJECT_ID=your_project_id
+npm run prepare:claim -- --claim examples/claim.json --auth-wait 120
 ```
 
-For an unattended run, omit `--headed` and provide a previously captured Playwright authentication state with `--storage path/to/storage-state.json`. Authentication state contains secrets: keep it outside the repository and inject it through the deployment platform's secret storage.
+Keep both Browserbase values in server-side secret storage. Never put them in `public/`, client-side JavaScript, Cloudflare Pages variables exposed to the browser, or source control.
+
+The command prints Browserbase's live debugger URL when the API supplies one. Open it during `--auth-wait` to take over the remote browser, complete TfL login/MFA, and navigate to the refund form. The automation then fills configured fields and writes the screenshot. `--review-wait` controls how long the remote session remains available for human inspection (10 minutes by default). If Browserbase supplies a replay URL, that is printed too.
 
 Copy `automation/tfl-selectors.example.json` and update selectors after inspecting the authenticated TfL form, then pass it with `--config`. The example selectors are placeholders because the public refund landing page does not expose the authenticated form. The output screenshot defaults to `artifacts/tfl-claim-review.png`.
 
 Current limitations:
 
-- TfL login, CAPTCHA and multi-factor authentication cannot be bypassed; a valid user session is required.
+- TfL login, CAPTCHA and multi-factor authentication cannot be bypassed; use Browserbase's live debugger for user takeover.
 - TfL has no supported claim-submission API, so form changes can require selector updates.
 - This prototype prepares one claim per invocation and does not submit, schedule, retry or persist a claim ledger.
-- Run browser automation in a suitable container or VM; Cloudflare Workers cannot run a normal Playwright Chromium process.
+- Browserbase is the browser runtime. The Node worker only uses Playwright as a CDP client and does not install or launch local Chromium.
