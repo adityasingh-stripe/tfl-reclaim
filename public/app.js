@@ -1,6 +1,7 @@
 import { demoJourneys, detectClaims, parseCsv } from "./engine.js";
 const $ = selector => document.querySelector(selector);
 const money = value => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(value);
+let selectedClaim;
 
 function render(journeys) {
   const claims = detectClaims(journeys);
@@ -20,12 +21,27 @@ function card(claim) {
 }
 
 function openClaim(claim) {
+  selectedClaim = claim;
   $("#claim-preview").innerHTML = `<strong>${money(claim.amount)}</strong><span>${claim.journey.from} → ${claim.journey.to}</span>`;
   $("#form-journey").value = `${claim.journey.date}, ${claim.journey.time} — ${claim.journey.description}`;
+  $(".confirm").innerHTML = `Confirm & queue claim <span>→</span>`;
+  $(".confirm").disabled = false;
   $("#modal").showModal();
 }
 
 $("#demo").onclick = () => render(demoJourneys());
 $("#file").onchange = async event => { const file = event.target.files[0]; if (file) render(parseCsv(await file.text())); };
 $(".close").onclick = () => $("#modal").close();
-$(".confirm").onclick = () => { $(".confirm").textContent = "✓ Ready for your confirmation"; };
+$(".confirm").onclick = () => {
+  if (!selectedClaim) return;
+  const cardButton = document.querySelector(`[data-file="${selectedClaim.id}"]`);
+  cardButton.textContent = "Queued ✓";
+  cardButton.disabled = true;
+  const status = cardButton.closest(".claim").querySelector(".status");
+  status.textContent = "CLAIM QUEUED";
+  status.classList.add("queued");
+  $("#modal").close();
+  $("#toast").classList.add("show");
+  window.setTimeout(() => $("#toast").classList.remove("show"), 4500);
+  selectedClaim = undefined;
+};
