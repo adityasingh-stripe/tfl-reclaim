@@ -102,7 +102,7 @@ export async function analyseWithTfl(journeys, fetcher = fetch, now = new Date()
       const dateParam = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
       const mode = journey.mode === "unknown" ? "tube,dlr,overground,elizabeth-line" : journey.mode;
       const url = `/api/tfl/Journey/JourneyResults/${from.icsId}/to/${to.icsId}?date=${dateParam}&time=${journey.start.replace(":", "")}&timeIs=Departing&mode=${mode}`;
-      const response = await fetcher(url);
+      const response = await fetchTfl(url, fetcher);
       if (!response.ok) throw new Error(`Journey Planner returned ${response.status}`);
       const result = await response.json();
       const options = result.journeys || [];
@@ -130,11 +130,18 @@ export async function analyseWithTfl(journeys, fetcher = fetch, now = new Date()
 async function resolveStation(name, mode, fetcher) {
   const query = name.replace(/\s*\([^)]*\)\s*/g, " ").trim();
   const modes = mode === "unknown" ? "tube,dlr,overground,elizabeth-line" : mode;
-  const response = await fetcher(`/api/tfl/StopPoint/Search/${encodeURIComponent(query)}?modes=${modes}`);
+  const response = await fetchTfl(`/api/tfl/StopPoint/Search/${encodeURIComponent(query)}?modes=${modes}`, fetcher);
   if (!response.ok) throw new Error(`Station search returned ${response.status}`);
   const result = await response.json();
   const matches = (result.matches || []).filter(match => match.icsId);
   return matches.find(match => match.id?.startsWith("HUB")) || matches[0];
+}
+
+async function fetchTfl(path, fetcher) {
+  const response = await fetcher(path);
+  if (response.ok && response.headers.get("content-type")?.includes("json")) return response;
+  const directPath = path.replace(/^\/api\/tfl/, "");
+  return fetcher(`https://api.tfl.gov.uk${directPath}`);
 }
 
 function parseDate(value, now) {
