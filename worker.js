@@ -24,8 +24,9 @@ export async function handleRequest(request, env, fetcher = fetch) {
 
 async function connectTfl(request, env, fetcher) {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
-  if (!env.BROWSERBASE_API_KEY || !env.BROWSERBASE_PROJECT_ID || !env.CONNECT_TOKEN) {
-    return json({ error: "TfL connection is not configured" }, 503);
+  const missing = ["BROWSERBASE_API_KEY", "BROWSERBASE_PROJECT_ID", "CONNECT_TOKEN"].filter(name => !env[name]);
+  if (missing.length) {
+    return json({ error: `Missing runtime bindings: ${missing.join(", ")}` }, 503);
   }
   if (request.headers.get("x-connect-token") !== env.CONNECT_TOKEN) return json({ error: "Invalid access code" }, 401);
 
@@ -66,4 +67,8 @@ async function browserbase(path, env, fetcher, body) {
 
 const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers: { "content-type": "application/json" } });
 
-export default { fetch: handleRequest };
+export default {
+  fetch(request, env) {
+    return handleRequest(request, env);
+  },
+};
