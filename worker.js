@@ -1,8 +1,8 @@
 const ALLOWED_PATHS = ["/StopPoint/Search/", "/Journey/JourneyResults/", "/Line/"];
 
-export async function handleRequest(request, env, fetcher = fetch, navigate = navigateBrowserbaseSession) {
+export async function handleRequest(request, env, fetcher = fetch) {
   const incoming = new URL(request.url);
-  if (incoming.pathname === "/api/browserbase/connect") return connectTfl(request, env, fetcher, navigate);
+  if (incoming.pathname === "/api/browserbase/connect") return connectTfl(request, env, fetcher);
   if (!incoming.pathname.startsWith("/api/tfl/")) return env.ASSETS.fetch(request);
   if (request.method !== "GET") return new Response("Method not allowed", { status: 405 });
 
@@ -22,7 +22,7 @@ export async function handleRequest(request, env, fetcher = fetch, navigate = na
   });
 }
 
-async function connectTfl(request, env, fetcher, navigate) {
+async function connectTfl(request, env, fetcher) {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
   const missing = ["BROWSERBASE_API_KEY", "BROWSERBASE_PROJECT_ID", "CONNECT_TOKEN"].filter(name => !env[name]);
   if (missing.length) {
@@ -42,7 +42,6 @@ async function connectTfl(request, env, fetcher, navigate) {
       timeout: 900,
       browserSettings: { context: { id: contextId, persist: true } },
     });
-    await navigate(session.connectUrl, "https://tfl.gov.uk/account");
     const debug = await browserbase(`/sessions/${encodeURIComponent(session.id)}/debug`, env, fetcher);
     return json({
       contextId,
@@ -54,22 +53,6 @@ async function connectTfl(request, env, fetcher, navigate) {
     console.error("Browserbase connect failed", error);
     return json({ error: `Could not start the secure TfL browser (${error.message})` }, 502);
   }
-}
-
-export function navigateBrowserbaseSession(connectUrl, url, WebSocketClient = WebSocket) {
-  return new Promise((resolve, reject) => {
-    const socket = new WebSocketClient(connectUrl);
-    const timeout = setTimeout(() => { socket.close(); reject(new Error("TfL navigation timed out")); }, 10000);
-    socket.addEventListener("open", () => socket.send(JSON.stringify({ id: 1, method: "Target.createTarget", params: { url } })));
-    socket.addEventListener("message", event => {
-      const message = JSON.parse(event.data);
-      if (message.id !== 1) return;
-      clearTimeout(timeout);
-      socket.close();
-      message.error ? reject(new Error("TfL navigation failed")) : resolve(message.result);
-    });
-    socket.addEventListener("error", () => { clearTimeout(timeout); reject(new Error("Could not connect to the secure browser")); });
-  });
 }
 
 async function browserbase(path, env, fetcher, body) {

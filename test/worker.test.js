@@ -40,10 +40,6 @@ test("Browserbase connection creates a persistent context and live view", async 
     new Request("https://reclaim.test/api/browserbase/connect", { method: "POST", headers: { "content-type": "application/json", "x-connect-token": "invite" }, body: "{}" }),
     { BROWSERBASE_API_KEY: "key", BROWSERBASE_PROJECT_ID: "project", CONNECT_TOKEN: "invite", ASSETS: {} },
     fetcher,
-    async (connectUrl, url) => {
-      assert.equal(connectUrl, "wss://browserbase.test/session");
-      assert.equal(url, "https://tfl.gov.uk/account");
-    },
   );
   const result = await response.json();
   assert.equal(result.liveUrl, "https://browserbase.test/live");

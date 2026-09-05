@@ -60,7 +60,7 @@ $("#start-connect").onclick = async () => {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Connection failed");
     localStorage.setItem("reclaim_tfl_context", result.contextId);
-    $("#connect-status").innerHTML = `<b>Secure browser ready.</b> Sign into TfL, complete SMS verification, then leave the browser open.`;
+    $("#connect-status").innerHTML = `<b>Secure browser ready.</b> In its address bar, paste <code>https://tfl.gov.uk/account</code>, then sign in and complete SMS verification.`;
     $("#tfl-live").src = result.liveUrl;
     $("#tfl-live").hidden = false;
     $("#connect-start").hidden = true;
