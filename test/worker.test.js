@@ -33,13 +33,17 @@ test("Browserbase connection creates a persistent context and live view", async 
   const fetcher = async (url, options = {}) => {
     calls.push({ url: String(url), body: options.body && JSON.parse(options.body) });
     if (String(url).endsWith("/contexts")) return Response.json({ id: "context-123" });
-    if (String(url).endsWith("/sessions")) return Response.json({ id: "session-123", expiresAt: "soon" });
+    if (String(url).endsWith("/sessions")) return Response.json({ id: "session-123", connectUrl: "wss://browserbase.test/session", expiresAt: "soon" });
     return Response.json({ debuggerFullscreenUrl: "https://browserbase.test/live" });
   };
   const response = await handleRequest(
     new Request("https://reclaim.test/api/browserbase/connect", { method: "POST", headers: { "content-type": "application/json", "x-connect-token": "invite" }, body: "{}" }),
     { BROWSERBASE_API_KEY: "key", BROWSERBASE_PROJECT_ID: "project", CONNECT_TOKEN: "invite", ASSETS: {} },
     fetcher,
+    async (connectUrl, url) => {
+      assert.equal(connectUrl, "wss://browserbase.test/session");
+      assert.equal(url, "https://tfl.gov.uk/account");
+    },
   );
   const result = await response.json();
   assert.equal(result.liveUrl, "https://browserbase.test/live");
