@@ -38,7 +38,6 @@ async function connectTfl(request, env, fetcher) {
     }
     const session = await browserbase("/sessions", env, fetcher, {
       projectId: env.BROWSERBASE_PROJECT_ID,
-      keepAlive: true,
       timeout: 900,
       browserSettings: { context: { id: contextId, persist: true } },
     });
@@ -51,7 +50,7 @@ async function connectTfl(request, env, fetcher) {
     });
   } catch (error) {
     console.error("Browserbase connect failed", error);
-    return json({ error: "Could not start the secure TfL browser" }, 502);
+    return json({ error: `Could not start the secure TfL browser (${error.message})` }, 502);
   }
 }
 
@@ -61,7 +60,7 @@ async function browserbase(path, env, fetcher, body) {
     headers: { "content-type": "application/json", "x-bb-api-key": env.BROWSERBASE_API_KEY },
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (!response.ok) throw new Error(`Browserbase ${path} returned ${response.status}`);
+  if (!response.ok) throw new Error(`${path} returned ${response.status}`);
   return response.json();
 }
 

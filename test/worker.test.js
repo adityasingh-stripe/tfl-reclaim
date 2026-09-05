@@ -44,5 +44,6 @@ test("Browserbase connection creates a persistent context and live view", async 
   const result = await response.json();
   assert.equal(result.liveUrl, "https://browserbase.test/live");
   assert.deepEqual(calls[1].body.browserSettings.context, { id: "context-123", persist: true });
+  assert.equal(calls[1].body.keepAlive, undefined);
   assert.equal(calls.every(call => !call.url.includes("key")), true);
 });
