@@ -67,3 +67,15 @@ Current limitations:
 - TfL has no supported claim-submission API, so form changes can require selector updates.
 - This prototype prepares one claim per invocation and does not submit, schedule, retry or persist a claim ledger.
 - Browserbase is the browser runtime. The Node worker only uses Playwright as a CDP client and does not install or launch local Chromium.
+
+### Passwordless web connection experiment
+
+The feature branch also exposes `POST /api/browserbase/connect`. The web UI creates or reuses a persistent Browserbase context and embeds Live View so the passenger enters their TfL credentials and SMS code directly in the hosted browser. Reclaim does not collect either value.
+
+Configure these encrypted Worker secrets before deploying the feature branch:
+
+- `BROWSERBASE_API_KEY`
+- `BROWSERBASE_PROJECT_ID`
+- `CONNECT_TOKEN` — a temporary access code that prevents public visitors consuming Browserbase sessions during the experiment
+
+This proves authentication persistence only. The context ID is stored in the current browser's local storage; production requires real user authentication and server-side context ownership. The user must navigate the Live View to the TfL account page because automatic page navigation is not yet connected to this web endpoint.

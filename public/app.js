@@ -45,6 +45,30 @@ function claimText(claim) {
 }
 
 $("#demo").onclick = () => render(demoJourneys());
+$("#connect-tfl").onclick = () => $("#connect-dialog").showModal();
+$(".connect-close").onclick = () => $("#connect-dialog").close();
+$("#start-connect").onclick = async () => {
+  const button = $("#start-connect");
+  button.disabled = true;
+  $("#connect-status").textContent = "Starting your private browser…";
+  try {
+    const response = await fetch("/api/browserbase/connect", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-connect-token": $("#connect-token").value },
+      body: JSON.stringify({ contextId: localStorage.getItem("reclaim_tfl_context") }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Connection failed");
+    localStorage.setItem("reclaim_tfl_context", result.contextId);
+    $("#connect-status").innerHTML = `<b>Secure browser ready.</b> Sign into TfL, complete SMS verification, then leave the browser open.`;
+    $("#tfl-live").src = result.liveUrl;
+    $("#tfl-live").hidden = false;
+    $("#connect-start").hidden = true;
+  } catch (error) {
+    $("#connect-status").textContent = error.message;
+    button.disabled = false;
+  }
+};
 $("#file").onchange = async event => {
   const file = event.target.files[0];
   if (!file) return;
